@@ -6,4 +6,4 @@ effect in cluster-randomized trials" currently under review.
 
 (3) The R file "csace" implement the approach developed in the manuscript.
 
-(4) The R file " 
+(4) The R file "simdata" is used to simulate data in the manuscript. 

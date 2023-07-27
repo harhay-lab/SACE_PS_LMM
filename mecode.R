@@ -1,3 +1,127 @@
+##### SACE estimation 
+## with random intercepts in the outcome models
+
+### da: data set
+### y.name: name of the outcome variable
+### tr.name: name of the treatment variable
+### xnames: names of the covariates
+### cluster.name: name of the cluster variable
+
+csace=function(da,y.name,tr.name,xnames,cluster.name){
+
+da$y=da[,y.name]
+da$yind=1 # create the index variable. 
+da$yind[is.na(da$y)]=0 # Index values of the truncated outcomes (NA's) are set 0
+
+da0=da[which(da[,tr.name]==0),] # control arm
+da1=da[which(da[,tr.name]==1),] # treatment arm
+
+da0$cid=da0[,cluster.name]  # create the cluster variable "cid" for the control group
+ugp0=sort(unique(da0[,cluster.name]))
+lugp0=length(ugp0)
+for(i in 1:lugp0){
+da0$cid[which(da0[,cluster.name]==ugp0[i])]=i
+}
+
+da1$cid=da1[,cluster.name] # create the cluster variable "cid" for the treatment group
+ugp1=sort(unique(da1[,cluster.name]))
+lugp1=length(ugp1)
+for(i in 1:lugp1){
+da1$cid[which(da1[,cluster.name]==ugp1[i])]=i
+}
+
+fobj=fit(da1,da0,xnames)
+return(fobj)
+}
+
+#######################
+
+fit=function(da1,da0,xnames){
+
+nms=100 # number of Monte Carlo simulations in the E-step calculation
+
+### treatment group 
+
+n1=length(unique(da1$cid)) # number of treated clusters
+m1v=as.vector(table(da1$cid)) # cluster size
+m1=sum(m1v) # sample size
+m1v1=as.vector(table(da1$cid,da1$yind)[,2]) # number of observed outcomes by cluster
+xm1=da1[,c("cid",xnames),drop=F]
+p=ncol(xm1)-1
+y1=da1[,"y"]
+sind1=tapply(da1$yind,da1$cid,function(x){which(x==1)})	# index of observed outcomes by cluster     
+
+### control group 
+
+n0=length(unique(da0$cid))
+m0v=as.vector(table(da0$cid))
+m0=sum(m0v)
+m0v1=as.vector(table(da0$cid,da0$yind)[,2])
+xm0=da0[,c("cid",xnames),drop=F]
+y0=da0[,"y"]
+sind0=tapply(da0$yind,da0$cid,function(x){which(x==1)})	 
+	   
+### starting values 
+ 
+alphass=(1:p)/(100*p)
+alphasn=(p:1)/(90*p)
+
+s1=lm(y1~as.matrix(xm1[,-1])-1)
+s0=lm(y0~as.matrix(xm0[,-1])-1)
+
+betass1=s1$coef
+betass0=s0$coef
+betasn=(betass1+betass0)/2
+
+sat=(summary(s1)$sigma^2+summary(s0)$sigma^2)/2
+taut=sat/5
+
+dif=1
+nit=35 # maximum number of iterations
+thr=1e-3
+nuit=0
+
+while(any(dif>thr)&(nuit<nit)){
+
+fo=fe(xm1,sind1,y1,n1,m1v,m1v1,
+alphass,alphasn,betass1,betasn,
+xm0,sind0,y0,n0,m0v,m0v1,m01,
+betass0,taut,sat,p,nms,xnames)
+
+dif.betass1=betass1-fo$nbetass1
+dif.betasn=betasn-fo$nbetasn
+dif.betass0=betass0-fo$nbetass0
+dif.beta=c(dif.betass1,dif.betasn,dif.betass0)
+
+betass1=fo$nbetass1
+betasn=fo$nbetasn
+betass0=fo$nbetass0
+
+dif.alphass=alphass-fo$nalphass
+dif.alphasn=alphasn-fo$nalphasn
+dif.alpha=c(dif.alphass,dif.alphasn)
+
+alphass=fo$nalphass
+alphasn=fo$nalphasn
+
+vo=vfun(xm1,sind1,y1,n1,m1v1,
+xm0,sind0,y0,n0,m0v1,
+betass1,betasn,betass0,alphass,alphasn,
+taut,sat,nms,m0,m1,xnames)
+
+dif.v=c(sat-vo$nsat,taut-vo$ntaut)
+sat=vo$nsat
+taut=vo$ntaut
+
+dif=abs(c(dif.v,dif.alpha,dif.beta))
+nuit=nuit+1
+}
+
+return(obj=c(vo$sace,betass1,betasn,betass0,
+alphass,alphasn,sat,taut,vo$pss,vo$psn,vo$pnn))
+
+}
+
 pmod=function(xi,alphass,alphasn){
 
 ess=exp(xi%*%alphass)
@@ -374,116 +498,5 @@ pnn=1-pss-psn
 
 return(list(nsat=nsat,ntaut=ntaut,sace=sace,
 pss=pss,psn=psn,pnn=pnn))
-}
-
-#######################
-
-fit=function(da1,da0,xnames){
-
-nms=100
-
-n1=length(unique(da1$cid))
-m1v=as.vector(table(da1$cid))
-m1v1=as.vector(table(da1$cid,da1$yind)[,2])
-xm1=da1[,c("cid",xnames),drop=F]
-p=ncol(xm1)-1
-y1=da1[,"y"]
-
-sind1=tapply(da1$yind,da1$cid,function(x){which(x==1)})	    
-m1=sum(m1v)
-
-n0=length(unique(da0$cid))
-m0v=as.vector(table(da0$cid))
-m0v1=as.vector(table(da0$cid,da0$yind)[,2])
-xm0=da0[,c("cid",xnames),drop=F]
-y0=da0[,"y"]
-sind0=tapply(da0$yind,da0$cid,function(x){which(x==1)})	 
-
-m0=sum(m0v)
-	    
-alphass=(1:p)/(100*p)
-alphasn=(p:1)/(90*p)
-
-s1=lm(y1~as.matrix(xm1[,-1])-1)
-s0=lm(y0~as.matrix(xm0[,-1])-1)
-
-betass1=s1$coef
-betass0=s0$coef
-betasn=(betass1+betass0)/2
-
-sat=(summary(s1)$sigma^2+summary(s0)$sigma^2)/2
-taut=sat/5
-
-dif=1
-nit=35
-thr=1e-3
-nuit=0
-
-while(any(dif>thr)&(nuit<nit)){
-
-fo=fe(xm1,sind1,y1,n1,m1v,m1v1,
-alphass,alphasn,betass1,betasn,
-xm0,sind0,y0,n0,m0v,m0v1,m01,
-betass0,taut,sat,p,nms,xnames)
-
-dif.betass1=betass1-fo$nbetass1
-dif.betasn=betasn-fo$nbetasn
-dif.betass0=betass0-fo$nbetass0
-dif.beta=c(dif.betass1,dif.betasn,dif.betass0)
-
-betass1=fo$nbetass1
-betasn=fo$nbetasn
-betass0=fo$nbetass0
-
-dif.alphass=alphass-fo$nalphass
-dif.alphasn=alphasn-fo$nalphasn
-dif.alpha=c(dif.alphass,dif.alphasn)
-
-alphass=fo$nalphass
-alphasn=fo$nalphasn
-
-vo=vfun(xm1,sind1,y1,n1,m1v1,
-xm0,sind0,y0,n0,m0v1,
-betass1,betasn,betass0,alphass,alphasn,
-taut,sat,nms,m0,m1,xnames)
-
-dif.v=c(sat-vo$nsat,taut-vo$ntaut)
-sat=vo$nsat
-taut=vo$ntaut
-
-dif=abs(c(dif.v,dif.alpha,dif.beta))
-nuit=nuit+1
-}
-
-return(obj=c(betass1,betasn,betass0,
-alphass,alphasn,sat,taut,vo$sace,vo$pss,vo$psn,vo$pnn))
-
-}
-
-csace=function(da,y.name,tr.name,xnames,cluster.name){
-
-da$y=da[,y.name]
-da$yind=1
-da$yind[is.na(da$y)]=0
-
-da0=da[which(da[,tr.name]==0),]
-da1=da[which(da[,tr.name]==1),]
-
-da0$cid=da0[,cluster.name]
-ugp0=sort(unique(da0[,cluster.name]))
-lugp0=length(ugp0)
-for(i in 1:lugp0){
-da0$cid[which(da0[,cluster.name]==ugp0[i])]=i
-}
-
-da1$cid=da1[,cluster.name]
-ugp1=sort(unique(da1[,cluster.name]))
-lugp1=length(ugp1)
-for(i in 1:lugp1){
-da1$cid[which(da1[,cluster.name]==ugp1[i])]=i
-}
-
-fobj=fit(da1,da0,xnames)
-return(fobj)
 }
 

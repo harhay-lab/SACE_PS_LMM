@@ -1,3 +1,128 @@
+##### SACE estimation 
+### with no random intercepts 
+
+### da: data set
+### y.name: name of the outcome variable
+### tr.name: name of the treatment variable
+### xnames: names of the covariates
+
+sace=function(da,y.name,tr.name,xnames){
+
+da$y=da[,y.name]
+da$yind=1 # create the index variable.
+da$yind[is.na(da$y)]=0 # Index values of the truncated outcomes (NA's) are set 0
+
+da0=da[which(da[,tr.name]==0),]
+da1=da[which(da[,tr.name]==1),]
+
+fobj=ffit(da1,da0,xnames)
+return(fobj)
+}
+
+#######################
+
+ffit=function(da1,da0,xnames){
+
+# treatment group 
+
+x1=as.matrix(da1[,xnames]) # m_{1} x p
+tx1=t(x1) # p x m_{1}
+m1=nrow(x1) # number of individuals
+p=ncol(x1)
+y1=da1[,"y"]
+sind1=which(da1$yind==1) # index of observed outcomes	    
+m11=length(sind1)
+x11=x1[sind1,,drop=F] # m_{1,1} x p
+tx11=t(x11)  # p x m_{1,1}
+y11=y1[sind1] # observed outcomes
+
+# control group
+
+x0=as.matrix(da0[,xnames]) # m_{0} x p
+tx0=t(x0) # p x m_{0}
+m0=nrow(x0) # number of individuals
+y0=da0[,"y"]
+sind0=which(da0$yind==1) # index of observed outcomes
+m01=length(sind0)
+
+x01=x0[sind0,,drop=F] # m_{0,1} x p
+tx01=t(x01)  # p x m_{0,1}
+y01=y0[sind0] # observed outcomes
+
+x00=x0[-sind0,,drop=F] # m_{0,0} x p
+tx00=t(x00)  # p x m_{0,0}
+
+###### starting values
+ 
+alphass=(1:p)/(100*p)
+alphasn=(p:1)/(90*p)
+
+s1=lm(y1~x1-1)
+s0=lm(y0~x0-1)
+
+betass1=s1$coef
+betass0=s0$coef
+betasn=(betass1+betass0)/2
+sat=(summary(s1)$sigma^2+summary(s0)$sigma^2)/2
+
+dif=1
+nit=40 # maximum number of iterations
+thr=1e-3
+nuit=0
+
+while(any(dif>thr)&(nuit<nit)){
+
+fo=ffe(x1,tx1,x11,tx11,sind1,y11,m1,m11,
+x0,tx0,x01,tx01,x00,tx00,sind0,y01,m0,m01,
+alphass,alphasn,betass1,betasn,sat,p)
+
+dif.betass1=betass1-fo$nbetass1
+dif.betasn=betasn-fo$nbetasn
+dif.betass0=betass0-fo$nbetass0
+dif.beta=c(dif.betass1,dif.betasn,dif.betass0)
+
+betass1=fo$nbetass1
+betasn=fo$nbetasn
+betass0=fo$nbetass0
+
+dif.alphass=alphass-fo$nalphass
+dif.alphasn=alphasn-fo$nalphasn
+dif.alpha=c(dif.alphass,dif.alphasn)
+
+alphass=fo$nalphass
+alphasn=fo$nalphasn
+
+vo=fv(x1,x11,sind1,y11,m11,x0,x01,sind0,y01,m01,
+betass1,betasn,betass0,alphass,alphasn,sat)
+
+dif.v=c(sat-vo)
+sat=vo
+
+dif=abs(c(dif.v,dif.alpha,dif.beta))
+nuit=nuit+1
+}
+
+po0=pmod(x0,alphass,alphasn)
+fpss0=po0$pss
+fy0=x0%*%betass0
+
+po1=pmod(x1,alphass,alphasn)
+fpss1=po1$pss
+fy1=x1%*%betass1
+
+fsace=sum(fy1*fpss1)/sum(fpss1)-
+sum(fy0*fpss0)/sum(fpss0)
+
+pss=(sum(fpss0)+sum(fpss1))/(m1+m0)
+psn=(sum(po0$psn)+sum(po1$psn))/(m1+m0)
+pnn=1-pss-psn
+
+return(c(fsace,betass1,betasn,betass0,
+alphass,alphasn,sat,pss,psn,pnn))
+}
+
+###########
+
 pmod=function(xi,alphass,alphasn){
 
 ess=exp(xi%*%alphass)
@@ -191,115 +316,4 @@ den0=sum(ty0ss)
 nsat=(den1+den0)/(m11+m01)
 
 return(nsat)
-}
-
-#######################
-
-ffit=function(da1,da0,xnames){
-
-x1=as.matrix(da1[,xnames]) # m_{1} x p
-tx1=t(x1) # p x m_{1}
-m1=nrow(x1)
-p=ncol(x1)
-y1=da1[,"y"]
-sind1=which(da1$yind==1)	    
-m11=length(sind1)
-x11=x1[sind1,,drop=F] # m_{1,1} x p
-tx11=t(x11)  # p x m_{1,1}
-y11=y1[sind1]
-
-x0=as.matrix(da0[,xnames]) # m_{0} x p
-tx0=t(x0) # p x m_{0}
-m0=nrow(x0)
-y0=da0[,"y"]
-sind0=which(da0$yind==1)
-m01=length(sind0)
-
-x01=x0[sind0,,drop=F] # m_{0,1} x p
-tx01=t(x01)  # p x m_{0,1}
-y01=y0[sind0]
-
-x00=x0[-sind0,,drop=F] # m_{0,0} x p
-tx00=t(x00)  # p x m_{0,0}
-
-######
- 
-alphass=(1:p)/(100*p)
-alphasn=(p:1)/(90*p)
-
-s1=lm(y1~x1-1)
-s0=lm(y0~x0-1)
-
-betass1=s1$coef
-betass0=s0$coef
-betasn=(betass1+betass0)/2
-sat=(summary(s1)$sigma^2+summary(s0)$sigma^2)/2
-
-dif=1
-nit=40
-thr=1e-3
-nuit=0
-
-while(any(dif>thr)&(nuit<nit)){
-
-fo=ffe(x1,tx1,x11,tx11,sind1,y11,m1,m11,
-x0,tx0,x01,tx01,x00,tx00,sind0,y01,m0,m01,
-alphass,alphasn,betass1,betasn,sat,p)
-
-dif.betass1=betass1-fo$nbetass1
-dif.betasn=betasn-fo$nbetasn
-dif.betass0=betass0-fo$nbetass0
-dif.beta=c(dif.betass1,dif.betasn,dif.betass0)
-
-betass1=fo$nbetass1
-betasn=fo$nbetasn
-betass0=fo$nbetass0
-
-dif.alphass=alphass-fo$nalphass
-dif.alphasn=alphasn-fo$nalphasn
-dif.alpha=c(dif.alphass,dif.alphasn)
-
-alphass=fo$nalphass
-alphasn=fo$nalphasn
-
-vo=fv(x1,x11,sind1,y11,m11,x0,x01,sind0,y01,m01,
-betass1,betasn,betass0,alphass,alphasn,sat)
-
-dif.v=c(sat-vo)
-sat=vo
-
-dif=abs(c(dif.v,dif.alpha,dif.beta))
-nuit=nuit+1
-}
-
-po0=pmod(x0,alphass,alphasn)
-fpss0=po0$pss
-fy0=x0%*%betass0
-
-po1=pmod(x1,alphass,alphasn)
-fpss1=po1$pss
-fy1=x1%*%betass1
-
-fsace=sum(fy1*fpss1)/sum(fpss1)-
-sum(fy0*fpss0)/sum(fpss0)
-
-pss=(sum(fpss0)+sum(fpss1))/(m1+m0)
-psn=(sum(po0$psn)+sum(po1$psn))/(m1+m0)
-pnn=1-pss-psn
-
-return(c(betass1,betasn,betass0,
-alphass,alphasn,sat,fsace,pss,psn,pnn))
-}
-
-sace=function(da,y.name,tr.name,xnames){
-
-da$y=da[,y.name]
-da$yind=1
-da$yind[is.na(da$y)]=0
-
-da0=da[which(da[,tr.name]==0),]
-da1=da[which(da[,tr.name]==1),]
-
-fobj=ffit(da1,da0,xnames)
-return(fobj)
 }

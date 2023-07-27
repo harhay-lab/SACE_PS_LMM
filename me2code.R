@@ -1,5 +1,5 @@
 ##### SACE estimation 
-## with random intercepts in both the outcome models and the membership models
+## with a random intercept in both the outcome models and the membership models
 
 ### da: data set
 ### y.name: name of the outcome variable

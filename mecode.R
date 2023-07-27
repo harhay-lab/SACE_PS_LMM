@@ -1,5 +1,5 @@
 ##### SACE estimation 
-## with random intercepts in the outcome models
+## with a random intercept in the outcome models
 
 ### da: data set
 ### y.name: name of the outcome variable

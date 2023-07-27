@@ -16,4 +16,4 @@ sim_outcome: outcome simulation with and without a random intercept in the membe
 
 sim_me: comparison of the performance of the three methods when the outcomes are simulated from the ME model.
 
-sim_me2: comparison of the performance of the three methods when the outcomes are simulated from the ME model.
+sim_me2: comparison of the performance of the three methods when the outcomes are simulated from the ME2 model.

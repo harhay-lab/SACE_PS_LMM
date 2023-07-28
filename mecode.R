@@ -1,4 +1,4 @@
-##### SACE estimation 
+##### SACE estimation by the ME approach
 ## with a random intercept in the outcome models
 
 ### da: data set
@@ -122,6 +122,8 @@ alphass,alphasn,sat,taut,vo$pss,vo$psn,vo$pnn))
 
 }
 
+## Principal strata probabilities calculation
+
 pmod=function(xi,alphass,alphasn){
 
 ess=exp(xi%*%alphass)
@@ -141,6 +143,8 @@ return(list(pss=pss,psn=psn,pnn=pnn,
 sdesn=sdesn,sdess=sdess,eta0=eta0))	
 }
 
+## Mixture model calculation
+
 eta1=function(x1i1,y1i,betass1,betasn,taut,sat,pss1,psn1){
 
 mss=x1i1%*%betass1
@@ -152,6 +156,8 @@ dsn=dnorm(y1i,mean=msn,sd=jointsd)*psn1
 eta1i=nume/(nume+dsn)
 return(eta1i)
 }
+
+## Monte Carlo E-step calculation in the treatment group
 
 eu1=function(x1i1,y1i,betass1,betasn,taut,sat,pss1,psn1,nms){
 
@@ -180,6 +186,8 @@ vui=eui2-(eui)^2}
 return(list(vui=vui,eui2=eui2,eui=eui))
 }
 
+### E-step calculation in the control group
+
 eu0=function(x0i1,y0i,m0i1,betass0,taut,sat){
 
 mss0=x0i1%*%betass0
@@ -190,6 +198,8 @@ vui=coef*sat
 eui2=vui+eui^2
 return(list(vui=vui,eui2=eui2,eui=eui))
 }
+
+### Parameter estimation in the treatment group 
 
 tr=function(xm1,sind1,y1,n1,m1v,m1v1,
 alphass,alphasn,betass1,betasn,taut,sat,p,nms,xnames){
@@ -284,6 +294,7 @@ dass2=dass2,dasn1=dasn1,dasn2=dasn2,
 aess=aess,aesn=aesn))
 }
 
+### Parameter estimation in the control group
 
 con=function(xm0,sind0,y0,n0,m0v,m0v1,
 alphass,alphasn,betass0,taut,sat,p,xnames){
@@ -381,7 +392,7 @@ return(list(nbetass0=nbetass0,dass1c=dass1c,dass2c=dass2c,
 dasn1c=dasn1c,dasn2c=dasn2c,aessc=aessc,aesnc=aesnc))
 }
 
-#####
+##### Fixed effects estimation
 
 fe=function(xm1,sind1,y1,n1,m1v,m1v1,
 alphass,alphasn,betass1,betasn,
@@ -403,7 +414,7 @@ nbetass0=co$nbetass0,
 nalphass=nalphass,nalphasn=nalphasn))
 }
 
-#################################
+################ Variance parameters estimation
 
 vfun=function(xm1,sind1,y1,n1,m1v1,
 xm0,sind0,y0,n0,m0v1,

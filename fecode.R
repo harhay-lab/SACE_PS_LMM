@@ -111,7 +111,7 @@ fpss1=po1$pss
 fy1=x1%*%betass1
 
 fsace=sum(fy1*fpss1)/sum(fpss1)-
-sum(fy0*fpss0)/sum(fpss0)
+sum(fy0*fpss0)/sum(fpss0) # SACE estimate
 
 pss=(sum(fpss0)+sum(fpss1))/(m1+m0)
 psn=(sum(po0$psn)+sum(po1$psn))/(m1+m0)
@@ -122,6 +122,8 @@ alphass,alphasn,sat,pss,psn,pnn))
 }
 
 ###########
+
+## principal strata probabilities calculation 
 
 pmod=function(xi,alphass,alphasn){
 
@@ -142,6 +144,8 @@ return(list(pss=pss,psn=psn,pnn=pnn,
 sdesn=sdesn,sdess=sdess,eta0=eta0))	
 }
 
+## Mixture model calculation
+
 feta1=function(x11,y11,betass1,betasn,sat,pss1,psn1){
 
 sa=sqrt(sat)
@@ -155,6 +159,8 @@ eta1=nume/(nume+dsn)
 return(eta1)
 
 }
+
+############ Parameter estimation in the treatment group
 
 ftr=function(x1,tx1,x11,tx11,sind1,y11,m1,m11,
 alphass,alphasn,betass1,betasn,sat,p){
@@ -214,6 +220,8 @@ dass2=dass2,dasn1=dasn1,dasn2=dasn2,
 aess=aess,aesn=aesn))
 }
 
+############ Parameter estimation in the control group
+
 fcon=function(x0,tx0,x01,tx01,x00,tx00,sind0,y01,m0,m01,
 alphass,alphasn,betass0,sat,p){
 	
@@ -269,7 +277,7 @@ return(list(nbetass0=nbetass0,dass1c=dass1c,dass2c=dass2c,
 dasn1c=dasn1c,dasn2c=dasn2c,aessc=aessc,aesnc=aesnc))
 }
 
-#####
+##### Fixed effects estimation
 
 ffe=function(x1,tx1,x11,tx11,sind1,y11,m1,m11,
 x0,tx0,x01,tx01,x00,tx00,sind0,y01,m0,m01,
@@ -286,11 +294,10 @@ nalphass=alphass-solve(to$dass2+co$dass2c,to$dass1+co$dass1c+to$aess+co$aessc)
 nalphasn=alphasn-solve(to$dasn2+co$dasn2c,to$dasn1+co$dasn1c+to$aesn+co$aesnc)
 
 return(list(nbetass1=to$nbetass1,nbetasn=to$nbetasn,
-nbetass0=co$nbetass0,
-nalphass=nalphass,nalphasn=nalphasn))
+nbetass0=co$nbetass0,nalphass=nalphass,nalphasn=nalphasn))
 }
 
-#################################
+########### Variance parameter estimation
 
 fv=function(x1,x11,sind1,y11,m11,x0,x01,sind0,y01,m01,
 betass1,betasn,betass0,alphass,alphasn,sat){

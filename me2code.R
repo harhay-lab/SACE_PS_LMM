@@ -124,7 +124,7 @@ alphass,alphasn,sat,taut,gat,vo$pss,vo$psn,vo$pnn))
 
 }
 
-####################
+############ Principal strata probabilities calculation
 
 rpmod=function(xi,sindi,alphass,alphasn,gat,ni,nms){
 
@@ -183,6 +183,8 @@ return(list(mpss=mpss,mpsn=mpsn,mpnn=mpnn,meta0=meta0,ev1i2=ev1i2,ev0i2=ev0i2,
 msdesn1=msdesn1,msdess1=msdess1,msdesn0=msdesn0,msdess0=msdess0))	
 }
 
+## Mixture model calculation 
+
 reta1=function(x1i1,y1i,betass1,betasn,taut,sat,mpss1,mpsn1){
 
 mss=x1i1%*%betass1
@@ -194,6 +196,8 @@ dsn=dnorm(y1i,mean=msn,sd=jointsd)*mpsn1
 eta1i=nume/(nume+dsn)
 return(eta1i)
 }
+
+## Monte Carlo E-step calculation
 
 reu1=function(x1i1,y1i,betass1,betasn,taut,sat,mpss1,mpsn1,nms){
 
@@ -235,6 +239,8 @@ vui=coef*sat
 eui2=vui+eui^2
 return(list(vui=vui,eui2=eui2,eui=eui))
 }
+
+## Parameter estimation in the treatment group
 
 rtr=function(xm1,sind1,y1,n1,m1v,m1v1,
 alphass,alphasn,betass1,betasn,taut,sat,gat,p,nms,xnames){
@@ -328,6 +334,7 @@ return(list(nbetass1=nbetass1,nbetasn=nbetasn,dass1=dass1,
 dass2=dass2,dasn1=dasn1,dasn2=dasn2,aess=aess,aesn=aesn))
 }
 
+### Parameter estimation in the control group
 
 rcon=function(xm0,sind0,y0,n0,m0v,m0v1,
 alphass,alphasn,betass0,taut,sat,gat,p,nms,xnames){
@@ -425,7 +432,7 @@ return(list(nbetass0=nbetass0,dass1c=dass1c,dass2c=dass2c,
 dasn1c=dasn1c,dasn2c=dasn2c,aessc=aessc,aesnc=aesnc))
 }
 
-#####
+##### Fixed effects estimation
 
 rfe=function(xm1,sind1,y1,n1,m1v,m1v1,
 alphass,alphasn,betass1,betasn,
@@ -447,7 +454,7 @@ nbetass0=co$nbetass0,
 nalphass=nalphass,nalphasn=nalphasn))
 }
 
-#################################
+############# Variance parameters estimation
 
 rv=function(xm1,sind1,y1,n1,m1v,m1v1,
 xm0,sind0,y0,n0,m0v,m0v1,

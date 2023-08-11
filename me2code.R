@@ -45,7 +45,7 @@ nms=100  # number of Monte Carlo simulations in the E-step calculation
 n1=length(unique(da1$cid)) # number of treated clusters
 m1v=as.vector(table(da1$cid)) # cluster size
 m1=sum(m1v) # sample size
-m1v1=as.vector(table(da1$cid,da1$yind)[,2]) # number of observed outcomes by cluster
+m1v1=as.vector(table(da1$cid,da1$yind)[,"1"]) # number of observed outcomes by cluster
 xm1=da1[,c("cid",xnames),drop=F]
 p=ncol(xm1)-1
 y1=da1[,"y"]
@@ -56,7 +56,7 @@ sind1=tapply(da1$yind,da1$cid,function(x){which(x==1)})	 # index of observed out
 n0=length(unique(da0$cid))
 m0v=as.vector(table(da0$cid))
 m0=sum(m0v)
-m0v1=as.vector(table(da0$cid,da0$yind)[,2])
+m0v1=as.vector(table(da0$cid,da0$yind)[,"1"])
 xm0=da0[,c("cid",xnames),drop=F]
 y0=da0[,"y"]
 sind0=tapply(da0$yind,da0$cid,function(x){which(x==1)})	 

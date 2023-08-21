@@ -20,6 +20,8 @@ return(fobj)
 }
 
 ######### model fitting ####
+# da1: data of the treatment group
+# da0: data of the control group
 
 ffit=function(da1,da0,xnames){
 

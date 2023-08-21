@@ -1,5 +1,5 @@
-##### SACE estimation by the ME approach
-## with a random intercept in the outcome models
+##### SACE estimation using the ME approach
+## with random intercepts in the outcome models
 
 ### da: data set
 ### y.name: name of the outcome variable
@@ -34,7 +34,9 @@ fobj=fit(da1,da0,xnames)
 return(fobj)
 }
 
-#######################
+########### Model fitting #######
+# da1: data of the treatment arm.
+# da0: data of the control arm
 
 fit=function(da1,da0,xnames){
 
@@ -47,19 +49,19 @@ m1v=as.vector(table(da1$cid)) # cluster size
 m1=sum(m1v) # sample size
 m1v1=as.vector(table(da1$cid,da1$yind)[,"1"]) # number of observed outcomes by cluster
 xm1=da1[,c("cid",xnames),drop=F]
-p=ncol(xm1)-1
+p=ncol(xm1)-1 # number of covariates
 y1=da1[,"y"]
 sind1=tapply(da1$yind,da1$cid,function(x){which(x==1)})	# index of observed outcomes by cluster     
 
 ### control group 
 
-n0=length(unique(da0$cid))
-m0v=as.vector(table(da0$cid))
-m0=sum(m0v)
-m0v1=as.vector(table(da0$cid,da0$yind)[,"1"])
+n0=length(unique(da0$cid)) # number of control clusters
+m0v=as.vector(table(da0$cid)) # cluster size
+m0=sum(m0v) # sample size
+m0v1=as.vector(table(da0$cid,da0$yind)[,"1"]) # number of observed outcomes by cluster
 xm0=da0[,c("cid",xnames),drop=F]
 y0=da0[,"y"]
-sind0=tapply(da0$yind,da0$cid,function(x){which(x==1)})	 
+sind0=tapply(da0$yind,da0$cid,function(x){which(x==1)})	# index of observed outcomes by cluster  
 	   
 ### starting values 
  

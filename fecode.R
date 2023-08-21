@@ -30,10 +30,10 @@ ffit=function(da1,da0,xnames){
 x1=as.matrix(da1[,xnames]) # m_{1} x p
 tx1=t(x1) # p x m_{1}
 m1=nrow(x1) # number of individuals
-p=ncol(x1)
+p=ncol(x1) # number of covariates
 y1=da1[,"y"]
 sind1=which(da1$yind==1) # index of observed outcomes	    
-m11=length(sind1)
+m11=length(sind1) # length of observed outcomes
 x11=x1[sind1,,drop=F] # m_{1,1} x p
 tx11=t(x11)  # p x m_{1,1}
 y11=y1[sind1] # observed outcomes
@@ -45,8 +45,7 @@ tx0=t(x0) # p x m_{0}
 m0=nrow(x0) # number of individuals
 y0=da0[,"y"]
 sind0=which(da0$yind==1) # index of observed outcomes
-m01=length(sind0)
-
+m01=length(sind0) # length of observed outcomes
 x01=x0[sind0,,drop=F] # m_{0,1} x p
 tx01=t(x01)  # p x m_{0,1}
 y01=y0[sind0] # observed outcomes
@@ -115,9 +114,9 @@ fy1=x1%*%betass1
 fsace=sum(fy1*fpss1)/sum(fpss1)-
 sum(fy0*fpss0)/sum(fpss0) # SACE estimate
 
-pss=(sum(fpss0)+sum(fpss1))/(m1+m0)
-psn=(sum(po0$psn)+sum(po1$psn))/(m1+m0)
-pnn=1-pss-psn
+pss=(sum(fpss0)+sum(fpss1))/(m1+m0) # prob. of ss stratum
+psn=(sum(po0$psn)+sum(po1$psn))/(m1+m0) # prob. of sn stratum
+pnn=1-pss-psn  # prob. of nn stratum
 
 return(c(fsace,betass1,betasn,betass0,
 alphass,alphasn,sat,pss,psn,pnn))

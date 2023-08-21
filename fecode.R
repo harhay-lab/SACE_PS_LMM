@@ -19,7 +19,7 @@ fobj=ffit(da1,da0,xnames)
 return(fobj)
 }
 
-#######################
+######### model fitting ####
 
 ffit=function(da1,da0,xnames){
 

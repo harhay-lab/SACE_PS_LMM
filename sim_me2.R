@@ -31,14 +31,14 @@ tsat=tt*(1-trho) # variance of the error
 
 tgat=0.8 # variance of v_i
 
-nsim=20# number of simulations
-nbp=50 # number of bootstrap samples
+nsim=10# number of simulations
+nbp=10 # number of bootstrap samples
 
 ################# data simulation
 
 rn=matrix(round(rnorm(nc*nsim,msize,sdsize)),nc,nsim) # cluster size
-sv1=matrix(rnorm(nc*nsim,0,sqrt(tgat)),nc,nsim)
-sv0=matrix(rnorm(nc*nsim,0,sqrt(tgat)),nc,nsim)
+sv1=matrix(rnorm(nc*nsim,0,sqrt(tgat)),nc,nsim) # random intercepts in the membership models of the treatment group
+sv0=matrix(rnorm(nc*nsim,0,sqrt(tgat)),nc,nsim) # random intercepts in the membership models of the control group
 
 cl=makeCluster(detectCores())
 registerDoParallel(cl)
@@ -114,7 +114,7 @@ bda0=da0[s0,]
 ffit(bda1,bda0,xnames) 
 }
 
-#### SACE estimation: random intercepts in the outcome models
+#### SACE estimation using the ME method
 
 me=foreach(kk=1:nsim,.combine='cbind',.errorhandling ="remove") %dopar%{
 source("mecode.R")
@@ -148,8 +148,7 @@ bda0=rbind(bda0,da0k)}
 fit(bda1,bda0,xnames) 
 }
 
-#### SACE estimation: random intercepts in both the outcome models
-####                  and the membership models
+#### SACE estimation using the ME2 method
 
 me2=foreach(kk=1:nsim,.combine='cbind',.errorhandling ="remove") %dopar%{
 da0=subset(sda0,simid==kk)

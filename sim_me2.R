@@ -22,7 +22,7 @@ tasn=c(-0.1,-0.1,-0.2) # alpha_sn
 
 nc = 30 # number of clusters each arm
 msize = 25 # average cluster size
-sdsize = 3 # standard deviation of cluster size
+sdsize = 3 # standard deviation of the cluster size
 
 tt = 2
 trho =0.01 # ICC in the outcome models

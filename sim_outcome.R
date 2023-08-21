@@ -1,5 +1,7 @@
 library(MASS)
 
+# compound symmetry structure of the variance/covariance matrix
+
 csmfun = function(taut, tsat, ni) {
 	csm = matrix(taut,ni,ni)+diag(tsat,ni) 
 	return(csm)
@@ -70,7 +72,7 @@ return(dai)
 }
 
 ### outcome simulation in the treatment group
-### Random intercepts are in both the membership models and outcome models
+### Random intercepts are in both the membership models and the outcome models
 
 simry1=function(xi,ni,tbss,tbsn,taut,tsat,tass,tasn,v1i,ii,kk){
 
@@ -103,7 +105,7 @@ return(dai)
 }
 
 ### outcome simulation in the control group
-### Random intercepts are in both the membership models and outcome models
+### Random intercepts are in both the membership models and the outcome models
 
 simry0=function(xi,ni,tbss0,taut,tsat,tass,tasn,v0i,ii,kk){
 

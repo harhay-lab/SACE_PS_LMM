@@ -1,5 +1,4 @@
 # simulation from the ME model:
-#  
 # no random intercepts in the membership models
 
 library(doParallel)
@@ -23,7 +22,7 @@ tasn=c(-0.5,-1.5,-1) # alpha_sn
 
 nc = 30 # number of clusters each arm
 msize = 25 # average cluster size
-sdsize = 3 # standard deviation of cluster size
+sdsize = 3 # standard deviation of the cluster size
 
 tt = 2
 trho =0.01 # ICC in the outcome models
@@ -111,7 +110,7 @@ bda0=da0[s0,]
 ffit(bda1,bda0,xnames) 
 }
 
-#### SACE estimation: random intercepts in the outcome models
+#### SACE estimation using the ME approach
 
 me=foreach(kk=1:nsim,.combine='cbind',.errorhandling ="remove") %dopar%{
 source("mecode.R")
@@ -145,8 +144,7 @@ bda0=rbind(bda0,da0k)}
 fit(bda1,bda0,xnames) 
 }
 
-#### SACE estimation: random intercepts in both the outcome models
-####                  and the membership models
+#### SACE estimation using the ME2 method
 
 me2=foreach(kk=1:nsim,.combine='cbind',.errorhandling ="remove") %dopar%{
 da0=subset(sda0,simid==kk)

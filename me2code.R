@@ -139,10 +139,13 @@ indi=rep(0,ni)
 indi[sindi]=1
 nindi=1-indi
 
+	xialphass=xi%*%alphass
+	xialphasn=xi%*%alphasn
+	
 for(k in 1:nms){
 
-ess=exp(xi%*%alphass+svi[k])
-esn=exp(xi%*%alphasn+svi[k])
+ess=exp(xialphass+svi[k])
+esn=exp(xialphasn+svi[k])
 dsn=(1+ess+esn)
 
 pnn[,k]=pnnk=1/dsn
